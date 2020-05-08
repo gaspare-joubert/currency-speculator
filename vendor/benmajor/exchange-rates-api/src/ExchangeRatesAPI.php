@@ -374,7 +374,7 @@ class ExchangeRatesAPI
     }
     
     # Runs tests to verify a currency code:
-    private function verifyCurrencyCode( string $code )
+    public function verifyCurrencyCode( string $code )
     {
         $currencyCode = $this->sanitizeCurrencyCode($code);
         
@@ -392,7 +392,7 @@ class ExchangeRatesAPI
     }
     
     # Sanitize a currency code:
-    private function sanitizeCurrencyCode( string $code )
+    public function sanitizeCurrencyCode( string $code )
     {
         return trim(
             strtoupper( $code )

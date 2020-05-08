@@ -10,7 +10,7 @@
  * baseCurrency = GBP
  *
  * Foreach Currency
- * Convert to Currency
+ * Convert the original qty of Currency units to Currency
  * baseCurrency = Currency
  *
  * For 3 iterations
@@ -50,12 +50,13 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
 
         /**
          * Foreach Currency
-         * Convert to Currency
+         * Convert the original qty of Currency units to Currency
          * baseCurrency = Currency
          */
-        foreach ($this->currencies as $key=>$val)
+        foreach ($this->currencies[$this->dateToday] as $key=>$val)
         {
-            $test = '';
+            $qtyCurrency = $this->convertBaseTocurrency($key, $this->qtyOriginal, $val);
+            $this->currencies[$this->dateToday]['qtyCurrencies'][$key] = $qtyCurrency;
         }
 
         print_r($this->currencies);
