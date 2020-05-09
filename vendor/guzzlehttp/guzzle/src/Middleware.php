@@ -2,6 +2,8 @@
 namespace GuzzleHttp;
 
 require_once ('vendor/guzzlehttp/guzzle/src/PrepareBodyMiddleware.php');
+require_once ('vendor/guzzlehttp/guzzle/src/Exception/RequestException.php');
+require_once ('vendor/guzzlehttp/guzzle/src/Exception/ClientException.php');
 
 use GuzzleHttp\Cookie\CookieJarInterface;
 use GuzzleHttp\Exception\RequestException;

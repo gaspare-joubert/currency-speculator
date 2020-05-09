@@ -27,7 +27,8 @@ class FxSpeculator
     public function __construct(\BenMajor\ExchangeRatesAPI\ExchangeRatesAPI $exchangeRatesAPI)
     {
         $date = new DateTime();
-        $this->dateToday = $date->format('Y-m-d');
+        //$this->dateToday = $date->format('Y-m-d');
+        $this->dateToday = '2020-05-06';
         //$this->dateYesterday = $date->sub(new DateInterval('P1D'))->format('Y-m-d');
         $this->dateYesterday = $this->dateToday;
         $this->exchangeRatesAPI = $exchangeRatesAPI;
@@ -49,11 +50,40 @@ class FxSpeculator
     {
         $lookup = $this->exchangeRatesAPI;
         //$this->rates = $lookup->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
-        $this->rates = $lookup->addRates(['CAD', 'HKD', 'ISK'])->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
+        $this->rates = $lookup->addRates(['EUR', 'JPY', 'BGN', 'CZK', 'DKK'])->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
     }
 
+    /**
+     * @param $baseCurrency
+     * @param $removeRate
+     * @throws Exception
+     *
+     * Fetch rates, excluding baseCurrency
+     * * based on the baseCurrency
+     * * using addDateFrom
+     * * using addDateTo
+     */
+    protected function fetchRatesWithRemovedRate($baseCurrency, $removeRate)
+    {
+        $lookup = $this->exchangeRatesAPI;
 
-    protected function convertBaseTocurrency(string $to, float $amount, float $rate, $rounding = 2)
+        //$this->rates = $lookup->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
+        //$this->exchangeRatesAPI->rates = '';
+        //$this->rates = $lookup->addRates(['EUR', 'JPY', 'BGN', 'CZK', 'DKK'])->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
+        $this->rates = $lookup->removeRate($removeRate)->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
+    }
+
+    /**
+     * @param string $to
+     * @param float $amount
+     * @param float $rate
+     * @param int $rounding
+     * @return false|float
+     * @throws Exception
+     *
+     *
+     */
+    protected function convertBaseToCurrency(string $to, float $amount, float $rate, $rounding = 2)
     {
         $currencyTo = $this->exchangeRatesAPI->sanitizeCurrencyCode($to);
 

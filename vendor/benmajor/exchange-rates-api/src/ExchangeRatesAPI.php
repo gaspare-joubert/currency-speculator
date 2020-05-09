@@ -11,8 +11,11 @@
 
 namespace BenMajor\ExchangeRatesAPI;
 
+use function Composer\Autoload\includeFile;
+
 require_once('vendor/guzzlehttp/guzzle/src/Client.php');
 require_once('vendor/benmajor/exchange-rates-api/src/Response.php');
+require_once ('vendor/benmajor/exchange-rates-api/src/Exception.php');
 
 class ExchangeRatesAPI
 {
@@ -27,7 +30,7 @@ class ExchangeRatesAPI
     private $baseCurrency;
     
     # Exchange rates to fetch
-    private $rates = [ ];
+    public $rates = [ ];
     
     # Contains our Guzzle client:
     private $client;

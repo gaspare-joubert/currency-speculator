@@ -1,6 +1,8 @@
 <?php
 namespace GuzzleHttp\Exception;
 
+require_once ('vendor/guzzlehttp/guzzle/src/Exception/TransferException.php');
+
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
