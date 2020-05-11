@@ -26,6 +26,7 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
     private $currencies = array();
     private $currencies01 = array();
     private $currencies02 = array();
+    private $currencies03 = array();
 
     /**
      * ImmediateMarginFxSpeculator constructor.
@@ -90,7 +91,7 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
          * Find baseCurrency's highest conversion Currency
          * Convert to Currency
          */
-        foreach ($this->currencies[$this->dateToday] as $key => $val) {
+        foreach ($this->currencies01[$this->dateToday]['currencies01'] as $key => $val) {
             $baseCurrency = $key;
 
             try {
@@ -107,8 +108,25 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
             return;
         }
 
-        foreach ($this->currencies02[$this->dateToday]['currencies02'] as $key => $val) {
+        foreach ($this->currencies02[$this->dateToday]["currencies02"] as $key => $val) {
 
+            if(arsort($val[$this->dateToday])) {
+                $val1 = reset($val[$this->dateToday]);
+                $key1 = key($val[$this->dateToday]);
+
+                /**
+                 * 1st Iteration
+                 */
+                try {
+                    $qty = $this->currencies01[$this->dateToday]['currencies01'][$key];
+                    $qtyCurrency = $this->convertBaseToCurrency($key1, $qty, $val1);
+                } catch (\Exception $ex) {
+                } finally {
+                    if (!isset($ex) && !empty($qtyCurrency)) {
+                        $this->currencies03[$this->dateToday]['currencies03'][$key][$key1] = $qtyCurrency;
+                    }
+                }
+            }
         }
 
         print_r([$this->currencies]);
