@@ -4,15 +4,15 @@
  * Class ImmediateMarginFxSpeculator
  *
  * Calculate Immediate Margin
- * Using maximum 5 iterations
+ * Using maximum 1 iteration
  *
  * Fetch rates
  * baseCurrency = $baseCurrencyOriginal
  *
  * Foreach Currency
- * Convert the original qty of Currency units to Currency *
+ * Convert the original qty of Currency units to Currency
  *
- * For 3 iterations
+ * For 1 iteration
  * baseCurrency = Currency
  * Find baseCurrency's highest conversion Currency
  * Convert to Currency
@@ -22,7 +22,6 @@
  */
 class ImmediateMarginFxSpeculator Extends FxSpeculator
 {
-    private $baseCurrencyOriginal;
     private $currencies = array();
     private $currencies01 = array();
     private $currencies02 = array();
@@ -56,7 +55,7 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
             return;
         }
 
-        $this->currencies = $this->rates->getRates();
+        $this->currencies = $this->rates;
 
         /////////////////////////////////////////////
 
@@ -76,6 +75,10 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
                 if (!isset($ex) && !empty($qtyCurrency)) {
                     $this->currencies01[$this->dateToday]['currencies01'][$key] = $qtyCurrency;
                 }
+
+                if (isset($ex) && $ex->getMessage() == 'The specified currency code is not currently supported.') {
+                    unset($ex);
+                }
             }
         }
 
@@ -86,22 +89,23 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
         /////////////////////////////////////////////
 
         /**
-         * For 3 iterations
+         * For 1 iteration
          * baseCurrency = Currency
          * Find baseCurrency's highest conversion Currency
          * Convert to Currency
          */
         foreach ($this->currencies01[$this->dateToday]['currencies01'] as $key => $val) {
             $baseCurrency = $key;
+            $this->ratesToRemove = [$this->baseCurrencyOriginal, $key];
 
             try {
-                //$this->fetchRates($baseCurrency);
-                $this->fetchRatesWithRemovedRate($baseCurrency, $key); // For Testing Only!!
+                $this->fetchRates($baseCurrency);
+                //$this->fetchRatesWithRemovedRate($baseCurrency, $key); // For Testing Only!!
             } catch (\Exception $ex) {
             }
 
-            $this->currencies02[$this->dateToday]['currencies02'][$key] = $this->rates->getRates();
-            $this->rates = $this->exchangeRatesAPI->addRate($key)->setBaseCurrency($this->baseCurrencyOriginal)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch(); // For Testing Only!!
+            $this->currencies02[$this->dateToday]['currencies02'][$key] = $this->rates;
+            //$this->rates = $this->exchangeRatesAPI->addRate($key)->setBaseCurrency($this->baseCurrencyOriginal)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch(); // For Testing Only!!
         }
 
         if (empty($this->currencies02[$this->dateToday]['currencies02'])) {
@@ -123,8 +127,31 @@ class ImmediateMarginFxSpeculator Extends FxSpeculator
                 } catch (\Exception $ex) {
                 } finally {
                     if (!isset($ex) && !empty($qtyCurrency)) {
-                        $this->currencies03[$this->dateToday]['currencies03'][$key][$key1] = $qtyCurrency;
+                        $this->currencies03['01'][$this->dateToday]['currencies03_01'][$key][$key1] = $qtyCurrency;
                     }
+                }
+            }
+        }
+
+        if (empty($this->currencies03)) {
+            return;
+        }
+
+        /**
+         * Convert Currency to GBP
+         * Calculate Profit/Loss
+         */
+        foreach ($this->currencies03['01'][$this->dateToday]["currencies03_01"] as $key => $val) {
+            try {
+                $val1 = reset($val);
+                $key1 = key($val);
+
+                $rateInverted = 1/($this->currencies[$this->dateToday][$key1]);
+                $qtyCurrency = $this->convertBaseToCurrency($this->baseCurrencyOriginal, $val1, $rateInverted);
+            } catch (\Exception $ex) {
+            } finally {
+                if (!isset($ex) && !empty($qtyCurrency)) {
+                    $this->currenciesResult[$this->dateToday]['currenciesResult'][$this->baseCurrencyOriginal][$key][$key1] = $qtyCurrency - $this->qtyOriginal;
                 }
             }
         }

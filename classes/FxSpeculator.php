@@ -12,11 +12,13 @@ use \BenMajor\ExchangeRatesAPI\ExchangeRatesAPI;
  */
 class FxSpeculator
 {
+    protected $baseCurrencyOriginal;
     protected $dateToday;
     protected $dateYesterday;
     protected $exchangeRatesAPI;
     protected $rates;
     protected $qtyOriginal; // The number of the original currency units to exchange
+    protected $ratesToRemove = array();
 
     /**
      * FxSpeculator constructor
@@ -49,8 +51,69 @@ class FxSpeculator
     protected function fetchRates($baseCurrency)
     {
         $lookup = $this->exchangeRatesAPI;
-        //$this->rates = $lookup->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
-        $this->rates = $lookup->addRates(['EUR', 'JPY', 'BGN', 'CZK', 'DKK'])->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch();
+        $this->rates = ($lookup->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch()->getRates());
+
+        if($baseCurrency === $this->baseCurrencyOriginal)
+        {
+            $this->removeRate($baseCurrency);
+        }
+
+        if (!empty($this->ratesToRemove))
+        {
+            $this->removeRates($this->ratesToRemove);
+        }
+
+        //$this->rates = $lookup->addRates(['EUR', 'JPY', 'BGN', 'CZK', 'DKK'])->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch(); // For Testing Only!!
+    }
+
+    /**
+     * @param $ratesToRemove
+     *
+     * Remove baseCurrency from rates
+     * Remove Original baseCurrency from rates
+     * Behaviour is different to standard when using addDateFrom() & addDateTo()
+     */
+    private function removeRates($currencies)
+    {
+        foreach ($currencies as $currency)
+        {
+            $this->removeRate($currency);
+        }
+        return $this;
+    }
+
+    /**
+     * @param $baseCurrency
+     * @return $this
+     * @throws Exception
+     *
+     * Remove Currency from rates
+     * Behaviour is different to standard when using addDateFrom() & addDateTo()
+     */
+    private function removeRate($baseCurrency)
+    {
+        # Sanitize the code:
+        $currencyCode = $this->exchangeRatesAPI->sanitizeCurrencyCode($baseCurrency);
+
+        # Verify it's valid:
+        $this->exchangeRatesAPI->verifyCurrencyCode($currencyCode);
+
+        $newRates = [ ];
+
+        # Loop over the rates and check them against the currency to remove:
+        foreach( $this->rates[$this->dateToday] as $key => $val )
+        {
+            if( $key != $currencyCode )
+            {
+                $newRates[$this->dateToday][$key] = $val;
+            }
+        }
+
+        # Copy the temp array to the rates:
+        $this->rates = $newRates;
+
+        # Return object to preseve method chaining:
+        return $this;
     }
 
     /**
