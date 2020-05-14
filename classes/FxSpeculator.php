@@ -19,6 +19,7 @@ class FxSpeculator
     protected $rates;
     protected $qtyOriginal; // The number of the original currency units to exchange
     protected $ratesToRemove = array();
+    protected $convertionCost; // The cost of converting currencies (%)
 
     /**
      * FxSpeculator constructor
@@ -35,6 +36,7 @@ class FxSpeculator
         $this->dateYesterday = $this->dateToday;
         $this->exchangeRatesAPI = $exchangeRatesAPI;
         $this->qtyOriginal = '1000';
+        $this->convertionCost = '2.50'; //
     }
 
     /**
@@ -167,5 +169,10 @@ class FxSpeculator
             ($amount * $rate),
             $rounding
         );
+    }
+
+    protected function addCurrencyConversionCost($rate)
+    {
+        return $rate*(1-($this->convertionCost/100));
     }
 }

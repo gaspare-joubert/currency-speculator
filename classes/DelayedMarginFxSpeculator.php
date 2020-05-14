@@ -24,12 +24,13 @@
  * baseCurrency = Currency
  * Fetch rates
  *
+ * On day14 + 7days
  * Convert Currency to GBP
  * Calculate Profit/Loss
  */
 class DelayedMarginFxSpeculator Extends FxSpeculator
 {
-    private $currencies = array();
+    private $fxrates = array();
     private $currencies01 = array();
     private $currencies02 = array();
     private $currencies03 = array();
@@ -64,11 +65,7 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
             return;
         }
 
-        $this->currencies['day1'][$this->baseCurrencyOriginal] = $this->rates;
-
-        if (empty($this->currencies)) {
-            return;
-        }
+        $this->fxrates['day1'][$this->baseCurrencyOriginal] = $this->rates;
 
         /////////////////////////////////////////////
 
@@ -87,11 +84,7 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
             return;
         }
 
-        $this->currencies['day1+7'][$this->baseCurrencyOriginal] = $this->rates;
-
-        if (empty($this->currencies)) {
-            return;
-        }
+        $this->fxrates['day1+7'][$this->baseCurrencyOriginal] = $this->rates;
 
         /////////////////////////////////////////////
 
@@ -103,23 +96,20 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
          * Fetch rates
          */
 
-        foreach ($this->currencies['day1'][$this->baseCurrencyOriginal]['2020-03-02'] as $key => $val) {
-            $val1 = $this->currencies['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key];
+        foreach ($this->fxrates['day1'][$this->baseCurrencyOriginal]['2020-03-02'] as $key => $val) {
+            $val1 = $this->fxrates['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key];
             $appreciation = '';
 
             if($val1 > $val) {
                 $appreciation = round(((($val1 / $val) * 100) - 100) , 2);
-                $this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key] = $appreciation;
+                $this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key] = $appreciation;
             }
         }
 
-        if (empty($this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'])) {
-            return;
-        }
-
-        if(arsort($this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'])) {
-            $val1 = reset($this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']);
-            $key1 = key($this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']);
+        if(arsort($this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'])) {
+            reset($this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']); // error!! this returns the appreciation!! must return the rate!!
+            $key1 = key($this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']);
+            $val1 = $this->addCurrencyConversionCost($this->fxrates['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key1]);
 
             $this->ratesToRemove = [$this->baseCurrencyOriginal, $key1];
 
@@ -134,14 +124,10 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
                         return;
                     }
 
-                    $this->currencies['day1+7'][$key1]['2020-03-09'] = $this->rates;
-                    $this->currencies02['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key1] = $qtyCurrency;
+                    $this->fxrates['day1+7'][$key1]['2020-03-09'] = $this->rates;
+                    $this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key1] = $qtyCurrency;
                 }
             }
-        }
-
-        if (empty($this->currencies['day1+7'][$key1]['2020-03-09'])) {
-            return;
         }
 
         /////////////////////////////////////////////
@@ -156,9 +142,9 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
         try {
             $this->dateToday = '2020-03-16';
             $this->dateYesterday = $this->dateToday;
-            $keyNow = key($this->currencies02['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']);
-            $this->ratesToRemove = [$keyNow];
-            $this->fetchRates($keyNow);
+            $currencyDay1_7 = key($this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']);
+            $this->ratesToRemove = [$currencyDay1_7];
+            $this->fetchRates($currencyDay1_7);
         } catch (\Exception $ex) {
         }
 
@@ -166,32 +152,29 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
             return;
         }
 
-        $this->currencies['day7+7'][$keyNow] = $this->rates;
+        $this->fxrates['day7+7'][$currencyDay1_7] = $this->rates;
 
-        if (empty($this->currencies['day7+7'][$keyNow])) {
+        if (empty($this->fxrates['day7+7'][$currencyDay1_7])) {
             return;
         }
 
-        foreach ($this->currencies['day1+7'][$keyNow]['2020-03-09']['2020-03-09'] as $key => $val) {
-            $val1 = $this->currencies['day7+7'][$keyNow]['2020-03-16'][$key];
+        foreach ($this->fxrates['day1+7'][$currencyDay1_7]['2020-03-09']['2020-03-09'] as $key => $val) {
+            $val1 = $this->fxrates['day7+7'][$currencyDay1_7]['2020-03-16'][$key];
             $appreciation = '';
 
             if($val1 > $val) {
                 $appreciation = round(((($val1 / $val) * 100) - 100) , 2);
-                $this->currencies02['day7+7'][$keyNow]['2020-03-16'][$key] = $appreciation;
+                $this->appreciation02['day7+7'][$currencyDay1_7]['2020-03-16'][$key] = $appreciation;
             }
         }
 
-        if (empty($this->currencies02['day7+7'][$keyNow]['2020-03-16'])) {
-            return;
-        }
-
-        if(arsort($this->currencies02['day7+7'][$keyNow]['2020-03-16'])) {
-            $val1 = reset($this->currencies02['day7+7'][$keyNow]['2020-03-16']);
-            $key1 = key($this->currencies02['day7+7'][$keyNow]['2020-03-16']);
+        if(arsort($this->appreciation02['day7+7'][$currencyDay1_7]['2020-03-16'])) {
+            reset($this->appreciation02['day7+7'][$currencyDay1_7]['2020-03-16']);
+            $key1 = key($this->appreciation02['day7+7'][$currencyDay1_7]['2020-03-16']);
+            $val1 = $this->addCurrencyConversionCost($this->fxrates['day7+7'][$currencyDay1_7]['2020-03-16'][$key1]);
 
             $this->ratesToRemove = [$key1];
-            $qty = $this->currencies02["day1+7"][$this->baseCurrencyOriginal]["2020-03-09"][$keyNow];
+            $qty = $this->currencies01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$currencyDay1_7]; // Confirm the correct currency qty is being used!!
 
             try {
                 $qtyCurrency = $this->convertBaseToCurrency($key1, $qty, $val1);
@@ -204,12 +187,44 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
                         return;
                     }
 
-                    // Convert currency to original base currency here.
-
+                    $this->fxrates['day7+7'][$key1]['2020-03-16'] = $this->rates;
+                    $this->currencies02['day7+7'][$this->baseCurrencyOriginal]['2020-03-16'][$currencyDay1_7][$key1] = $qtyCurrency;
                 }
             }
         }
 
         /////////////////////////////////////////////
+        /**
+         * On day14 + 7days
+         * Convert Currency to GBP
+         * Calculate Profit/Loss
+         */
+
+        try {
+            $currencyDay7_7 = key($this->currencies02['day7+7'][$this->baseCurrencyOriginal]['2020-03-16'][$currencyDay1_7]);
+            $qty = $this->currencies02['day7+7'][$this->baseCurrencyOriginal]['2020-03-16'][$currencyDay1_7][$currencyDay7_7];
+
+            $this->dateToday = '2020-03-23';
+            $this->dateYesterday = $this->dateToday;
+            $this->ratesToRemove = [$currencyDay7_7];
+            $this->fetchRates($currencyDay7_7);
+
+            if (empty($this->rates)) {
+                return;
+            }
+
+            $this->fxrates['day14+7'][$currencyDay7_7]['2020-03-23'] = $this->rates;
+
+            $val1 = $this->addCurrencyConversionCost($this->fxrates['day14+7'][$currencyDay7_7]['2020-03-23']['2020-03-23'][$this->baseCurrencyOriginal]);
+            $qtyCurrency = $this->convertBaseToCurrency($this->baseCurrencyOriginal, $qty, $val1);
+        } catch (\Exception $ex) {
+        } finally {
+            if (!isset($ex) && !empty($qtyCurrency)) {
+                $this->currenciesResult['day14+7'][$this->dateToday]['currenciesResult'][$this->baseCurrencyOriginal][$currencyDay1_7][$currencyDay7_7] = round($qtyCurrency - $this->qtyOriginal, 2);
+            }
+        }
+        /////////////////////////////////////////////
+
+        print_r($this->currenciesResult['day14+7'][$this->dateToday]['currenciesResult']);
     }
 }
