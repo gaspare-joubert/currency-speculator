@@ -4,38 +4,29 @@
  * Class TestMarginFxSpeculator
  *
  * Calculate Delayed Margin
- * Using maximum 1 iteration
- * Use a set start day
- * Use 7 day intervals
+ * Using maximum 1 currency conversion
+ * Use a set start day ($day1)
+ * Use one day intervals ($nextDay)
  * Use a set minimum appreciation level
+ * Convert currency back to original base currency only when a minimum appreciation level
  *
  * Fetch rates on day1
  * baseCurrency = $baseCurrencyOriginal
  *
- * Fetch rates on day1 + 7days
+ * Fetch rates on nextDay
  * baseCurrency = $baseCurrencyOriginal
  *
- * Compare rates for day1 and day7
- * Find rate with 10% +  depreciation
+ * Compare rates for day1 and dayNext
+ * Find rate with 10% + 2.5% depreciation
  * Convert the original qty of Currency units to Currency
  * baseCurrency = Currency
  * Fetch rates
  *
- *
- *
- *
- *
- *
- *
- * Fetch rates on day7 + 7days
- * Find rate with 10% depreciation
- * Convert the original qty of Currency units to Currency
- * baseCurrency = Currency
- * Fetch rates
- *
- * On day14 + 7days
- * Convert Currency to GBP
+ * Fetch rates on new nextDay
+ * If currency has appreciated by 12.5% to original base currency
+ * Convert currency to original base currency
  * Calculate Profit/Loss
+
  */
 class TestMarginFxSpeculator Extends FxSpeculator
 {
