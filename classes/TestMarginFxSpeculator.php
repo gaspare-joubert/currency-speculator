@@ -135,7 +135,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
      * @return DateTime
      *
      * Compare fx rates of day1 and dayNext
-     * Find currency with appreciation of more than 12.5% against original base currency
+     * Find currency with appreciation of more than $minimumAppreciation against original base currency
      *
      * If none is found, move nextDay by one day
      */
@@ -207,9 +207,9 @@ class TestMarginFxSpeculator Extends FxSpeculator
      * @return DateTime
      *
      * Compare fx rates of day1 and dayNext
-     * Find appreciation of more than 12.5% of the converted currency against original base currency
+     * Find appreciation of more than $minimumAppreciation of the converted currency against original base currency
      *
-     * If none is found, move nextDay by one day
+     * If none is found, move nextDay forward by one day
      */
     private function getFxAppreciationBaseCurrencyOriginal(DateTime $paramDayNext)
     {
@@ -242,7 +242,6 @@ class TestMarginFxSpeculator Extends FxSpeculator
     /**
      * Convert the new currency to original base currency
      */
-
     private function convertCurrencyBaseCurrencyOriginal(): void
     {
         $key1 = $this->baseCurrencyOriginal;
