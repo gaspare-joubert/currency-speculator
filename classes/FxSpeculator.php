@@ -19,7 +19,8 @@ class FxSpeculator
     protected $rates;
     protected $qtyOriginal; // The number of the original currency units to exchange
     protected $ratesToRemove = array();
-    protected $convertionCost; // The cost of converting currencies (%)
+    protected $conversionCost; // The cost of converting currencies (%)
+    protected $date;
 
     /**
      * FxSpeculator constructor
@@ -29,14 +30,14 @@ class FxSpeculator
      */
     public function __construct(\BenMajor\ExchangeRatesAPI\ExchangeRatesAPI $exchangeRatesAPI)
     {
-        $date = new DateTime();
+        $this->date = new DateTime();
         //$this->dateToday = $date->format('Y-m-d');
         $this->dateToday = '2020-05-06';
         //$this->dateYesterday = $date->sub(new DateInterval('P1D'))->format('Y-m-d');
         $this->dateYesterday = $this->dateToday;
         $this->exchangeRatesAPI = $exchangeRatesAPI;
         $this->qtyOriginal = '1000';
-        $this->convertionCost = '2.50'; //
+        $this->conversionCost = '2.50';
     }
 
     /**
@@ -173,6 +174,6 @@ class FxSpeculator
 
     protected function addCurrencyConversionCost($rate)
     {
-        return $rate*(1-($this->convertionCost/100));
+        return $rate*(1-($this->conversionCost/100));
     }
 }

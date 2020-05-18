@@ -107,7 +107,7 @@ class DelayedMarginFxSpeculator Extends FxSpeculator
         }
 
         if(arsort($this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'])) {
-            reset($this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']); // error!! this returns the appreciation!! must return the rate!!
+            reset($this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']);
             $key1 = key($this->appreciation01['day1+7'][$this->baseCurrencyOriginal]['2020-03-09']);
             $val1 = $this->addCurrencyConversionCost($this->fxrates['day1+7'][$this->baseCurrencyOriginal]['2020-03-09'][$key1]);
 
