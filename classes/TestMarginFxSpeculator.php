@@ -104,7 +104,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
     }
 
     /**
-     * @param DateTime $dayNext
+     * @param DateTime $paramDayNext
      * @return mixed
      *
      * Set the next day of the session
