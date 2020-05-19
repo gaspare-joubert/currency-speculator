@@ -33,25 +33,32 @@ class LiveMarginFxSpeculator Extends FxSpeculator
     private $day1;
     private $dayNext;
     private $fetchRatesCurrency;
-    private $minimumAppreciation = '15';
+    private $minimumAppreciationFx = '15'; // Minimum appreciation to trigger conversion from original base currency
+    private $minimumAppreciationBaseCurrencyOriginal = '1'; // Minimum appreciation when converting currency back to original base currency
     private $key1;
     private $now;
+    private $newCurrency;
+    private $newCurrencyQty;
 
     public function __construct()
     {
         parent::__construct($GLOBALS["fxSpeculator"]->exchangeRatesAPI);
         $this->baseCurrencyOriginal = 'GBP';
-        $this->now = new DateTime('now');
+        $this->now = new DateTime();
+        $this->now = $this->now->setTime('0','0','0');
         $this->main();
     }
 
     private function main()
     {
-        $startDate = '2020-05-18';
-        $this->date = new DateTime($startDate);
+        //$startDate = '2020-05-11'; // For testing only!!
+        $this->date = new DateTime();
         $this->day1 = $this->date;
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
-        $this->setDay1Sub($this->day1);
+        if (!($this->setDay1Sub($this->day1))) {
+            echo "setDay1Sub unable to fetch rates for $this->dateToday. Try again after CET 16:00.";
+            exit();
+        }
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
         $this->setDayNextSub($this->day1);
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
@@ -62,14 +69,20 @@ class LiveMarginFxSpeculator Extends FxSpeculator
          * The original base currency has now been converted
          * Now find the next day when this currency has appreciated by 12.5% against the original base currency
          */
-        $newCurrencyStartDate = new DateTime($this->dateToday);
-        $newCurrency = 'BRL';
-        $newCurrencyQty = '6857.14';
-        $this->fetchRatesCurrency = $newCurrency;
-        $this->setDayNextAdd($newCurrencyStartDate);
-        $this->fetchRatesCurrency = $newCurrency;
-        $this->getFxAppreciationBaseCurrencyOriginal($this->dayNext);
-        $this->fetchRatesCurrency = $newCurrency;
+        $newCurrencyConversionDate = new DateTime('2020-05-19'); // Use from $this->currencies01
+        $this->newCurrency = 'BRL'; // Use from $this->currencies01
+        $this->newCurrencyQty = '6790.43'; // Use from $this->currencies01
+        $this->fetchRatesCurrency = $this->newCurrency;
+        if(!($this->setDayNextAdd($newCurrencyConversionDate))) {
+            echo "setDayNextAdd Failed to fetch rates. Possibly due to newCurrencyConversionDate being the same as today's date.";
+            exit();
+        }
+        $this->fetchRatesCurrency = $this->newCurrency;
+        if(!($this->getFxAppreciationBaseCurrencyOriginal($this->dayNext))) {
+            echo 'getFxAppreciationBaseCurrencyOriginal Failed to fetch rates. Try reducing $minimumAppreciationBaseCurrencyOriginal.';
+            exit();
+        }
+        $this->fetchRatesCurrency = $this->newCurrency;
         $this->convertCurrencyBaseCurrencyOriginal();
     }
 
@@ -80,21 +93,20 @@ class LiveMarginFxSpeculator Extends FxSpeculator
      * Set day 1 of the session
      * Fetch rates for day 1
      *
-     * Use a set start date
-     * Keep moving the day 1 back by one day, until rates are fetched
+     * Use today as the start date
+     * If rates are not available for today, exit
      */
     private function setDay1Sub(DateTime $day1)
     {
         try {
             $this->dateToday = $day1->format('Y-m-d');
             $this->dateYesterday = $this->dateToday;
-            $this->fetchRates($this->fetchRatesCurrency);
-        } catch (\Exception $ex) {
-        }
 
-        while (empty($this->rates)) {
-            $day1 = $day1->sub(new DateInterval('P1D'));
-            return $this->setDay1Sub($day1);
+            if(!($this->fetchRates($this->fetchRatesCurrency))) {
+                return false;
+            }
+
+        } catch (\Exception $ex) {
         }
 
         $this->day1 = $day1;
@@ -152,7 +164,7 @@ class LiveMarginFxSpeculator Extends FxSpeculator
                 if($val > $val1) {
                     $appreciation = round(((($val / $val1) * 100) - 100) , 2);
 
-                    if($appreciation >= $this->minimumAppreciation) {
+                    if($appreciation >= $this->minimumAppreciationFx) {
                         $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')][$key] = $appreciation;
                     }
                 }
@@ -199,6 +211,8 @@ class LiveMarginFxSpeculator Extends FxSpeculator
 
                     $this->fxrates['day1'][$key1] = $this->rates;
                     $this->currencies01['day1'][$this->fetchRatesCurrency][$this->day1->format('Y-m-d')][$key1] = $qtyCurrency;
+                    $this->currencies01['day1'][$this->fetchRatesCurrency][$this->day1->format('Y-m-d')]['fxRate'] = $this->fxrates['day1'][$this->fetchRatesCurrency][$this->day1->format('Y-m-d')][$key1];
+                    $this->currencies01['day1'][$this->fetchRatesCurrency][$this->day1->format('Y-m-d')]['fxRateWithCost'] = $val1;
                 }
             }
         }
@@ -221,11 +235,14 @@ class LiveMarginFxSpeculator Extends FxSpeculator
             $dayNext = $dayNext->add(new DateInterval('P1D'));
             $this->dateToday = $dayNext->format('Y-m-d');
             $this->dateYesterday = $this->dateToday;
-            $this->fetchRates($this->fetchRatesCurrency);
+
+            if(!($this->fetchRates($this->fetchRatesCurrency))) {
+                return;
+            }
         } catch (\Exception $ex) {
         }
 
-        while (empty($this->rates) && $dayNext <= $this->now) {
+        while (empty($this->rates) && $dayNext < $this->now) {
             return $this->setDayNextAdd($dayNext);
         }
 
@@ -259,7 +276,7 @@ class LiveMarginFxSpeculator Extends FxSpeculator
             if($val1 > $val) {
                 $appreciation = round(((($val1 / $val) * 100) - 100) , 2);
 
-                if($appreciation >= $this->minimumAppreciation) {
+                if($appreciation >= $this->minimumAppreciationBaseCurrencyOriginal) {
                     $this->appreciation02['dayNext'][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')][$this->baseCurrencyOriginal] = $appreciation;
                 }
             }
@@ -268,7 +285,7 @@ class LiveMarginFxSpeculator Extends FxSpeculator
 
         while (empty($this->appreciation02['dayNext'][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')])) {
             if(!($this->setDayNextAdd($paramDayNext))) {
-                break;
+                return false;
             } else {
                 return $this->getFxAppreciationBaseCurrencyOriginal($this->dayNext);
             }
@@ -283,8 +300,15 @@ class LiveMarginFxSpeculator Extends FxSpeculator
     private function convertCurrencyBaseCurrencyOriginal(): void
     {
         $key1 = $this->baseCurrencyOriginal;
-        $val1 = $this->addCurrencyConversionCost($this->fxrates['dayNext'][$this->fetchRatesCurrency][$this->dayNext->format('Y-m-d')][$key1]);
-        $qty = $this->currencies01['day1'][$this->baseCurrencyOriginal][$this->day1->format('Y-m-d')][$this->fetchRatesCurrency];
+        $this->dateToday = $this->now->format('Y-m-d');
+        $this->dateYesterday = $this->dateToday;
+        $this->rates = $this->exchangeRatesAPI->addRate('GBP')->setBaseCurrency($this->fetchRatesCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch()->getRates();
+        if(empty($this->rates)) {
+            echo "Rate for $this->fetchRatesCurrency ($this->dateToday) could not be fetched. Try again after CET 16:00. ";
+            exit();
+        }
+        $val1 = $this->addCurrencyConversionCost($this->rates[$this->dateToday][$this->baseCurrencyOriginal]); // Using today's rate
+        $qty = $this->newCurrencyQty;
 
         try {
             $qtyCurrency = $this->convertBaseToCurrency($key1, $qty, $val1);

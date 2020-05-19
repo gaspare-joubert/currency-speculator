@@ -34,7 +34,9 @@ class TestMarginFxSpeculator Extends FxSpeculator
     private $dayNext;
     private $fetchRatesCurrency;
     private $key1;
-    private $minimumAppreciation = '15';
+    private $minimumAppreciationFx = '19'; // Minimum appreciation to trigger conversion from original base currency
+    private $minimumAppreciationBaseCurrencyOriginal = '22'; // Minimum appreciation when converting currency back to original base currency
+    private $now;
 
     private $fxrates = array();
     private $currencies01 = array();
@@ -49,6 +51,8 @@ class TestMarginFxSpeculator Extends FxSpeculator
     {
         parent::__construct($GLOBALS["fxSpeculator"]->exchangeRatesAPI);
         $this->baseCurrencyOriginal = 'GBP';
+        $this->now = new DateTime();
+        $this->now = $this->now->setTime('0','0','0');
         $this->main();
     }
 
@@ -59,7 +63,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
         $this->setDay1($this->day1);
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
-        $this->setDayNext($this->day1);
+        $this->setDayNextAdd($this->day1);
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
         $this->getFxAppreciation($this->dayNext);
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
@@ -71,7 +75,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
         $this->fetchRatesCurrency = $this->key1; // $this->key1 is set in $this->convertCurrency()
         $this->setDay1($this->dayNext);
         $this->fetchRatesCurrency = $this->key1;
-        $this->setDayNext($this->day1);
+        $this->setDayNextAdd($this->day1);
         $this->fetchRatesCurrency = $this->key1;
         $this->getFxAppreciationBaseCurrencyOriginal($this->dayNext);
         $this->fetchRatesCurrency = $this->key1;
@@ -110,7 +114,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
      * Set the next day of the session
      * Fetch rates for the next day
      */
-    private function setDayNext(DateTime $paramDayNext)
+    private function setDayNextAdd(DateTime $paramDayNext)
     {
         $dayNext = '';
         try {
@@ -122,12 +126,16 @@ class TestMarginFxSpeculator Extends FxSpeculator
         } catch (\Exception $ex) {
         }
 
-        while (empty($this->rates)) {
-            return $this->setDayNext($dayNext);
+        while (empty($this->rates) && $dayNext < $this->now) {
+            return $this->setDayNextAdd($dayNext);
         }
 
-        $this->dayNext = $dayNext;
-        return $this->fxrates['dayNext'][$this->fetchRatesCurrency] = $this->rates;
+        if (!empty($this->rates)) {
+            $this->dayNext = $dayNext;
+            return $this->fxrates['dayNext'][$this->fetchRatesCurrency] = $this->rates;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -152,7 +160,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
                 if($val1 > $val) {
                     $appreciation = round(((($val1 / $val) * 100) - 100) , 2);
 
-                    if($appreciation >= $this->minimumAppreciation) {
+                    if($appreciation >= $this->minimumAppreciationFx) {
                         $this->appreciation01['dayNext'][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')][$key] = $appreciation;
                     }
                 }
@@ -161,7 +169,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
         }
 
         while (empty($this->appreciation01['dayNext'][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')])) {
-            $this->setDayNext($paramDayNext);
+            $this->setDayNextAdd($paramDayNext);
             return $this->getFxAppreciation($this->dayNext);
         }
 
@@ -224,7 +232,7 @@ class TestMarginFxSpeculator Extends FxSpeculator
             if($val1 > $val) {
                 $appreciation = round(((($val1 / $val) * 100) - 100) , 2);
 
-                if($appreciation >= $this->minimumAppreciation) {
+                if($appreciation >= $this->minimumAppreciationBaseCurrencyOriginal) {
                     $this->appreciation02['dayNext'][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')][$this->baseCurrencyOriginal] = $appreciation;
                 }
             }
@@ -232,8 +240,11 @@ class TestMarginFxSpeculator Extends FxSpeculator
         }
 
         while (empty($this->appreciation02['dayNext'][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')])) {
-            $this->setDayNext($paramDayNext);
-            return $this->getFxAppreciationBaseCurrencyOriginal($this->dayNext);
+            if(!($this->setDayNextAdd($paramDayNext))) {
+                break;
+            } else {
+                return $this->getFxAppreciationBaseCurrencyOriginal($this->dayNext);
+            }
         }
 
         return $this->dayNext = $paramDayNext;
