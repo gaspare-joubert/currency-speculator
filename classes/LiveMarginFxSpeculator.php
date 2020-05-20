@@ -3,7 +3,15 @@
 /**
  * Class LiveMarginFxSpeculator
  *
- * Calculate Delayed Margin
+ * Calculate Live Margin
+ * Use the first part of the process
+ * * to find a currency which has depreciated by $minimumAppreciationFx
+ * * against the $baseCurrencyOriginal
+ * * convert a $qtyOriginal of the $baseCurrencyOriginal to this $newCurrency
+ * Use the second part of the process
+ * * to find the date when the $newCurrency has appreciated by $minimumAppreciationBaseCurrencyOriginal against the $baseCurrencyOriginal
+ * * convert the $newCurrency back to the $baseCurrencyOriginal
+ *
  * Using maximum 1 currency conversion
  * Use today and set start day ($day1)
  * Use one day intervals into the past ($nextDay)
@@ -51,8 +59,13 @@ class LiveMarginFxSpeculator Extends FxSpeculator
 
     private function main()
     {
-        //$startDate = '2020-05-11'; // For testing only!!
-        $this->date = new DateTime();
+        /**
+         * For testing only!!
+         */
+        $startDate = '2020-05-06';
+        $this->date = new DateTime($startDate);
+
+        //$this->date = new DateTime(); // Use this for live instance
         $this->day1 = $this->date;
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
         if (!($this->setDay1Sub($this->day1))) {
@@ -66,12 +79,13 @@ class LiveMarginFxSpeculator Extends FxSpeculator
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
         $this->convertCurrencySub();
         /**
+         * Manually record the details for this session
          * The original base currency has now been converted
          * Now find the next day when this currency has appreciated by 12.5% against the original base currency
          */
-        $newCurrencyConversionDate = new DateTime('2020-05-19'); // Use from $this->currencies01
+        $newCurrencyConversionDate = new DateTime('2020-05-06'); // Use from $this->currencies01
         $this->newCurrency = 'BRL'; // Use from $this->currencies01
-        $this->newCurrencyQty = '6790.43'; // Use from $this->currencies01
+        $this->newCurrencyQty = '6804.76'; // Use from $this->currencies01
         $this->fetchRatesCurrency = $this->newCurrency;
         if(!($this->setDayNextAdd($newCurrencyConversionDate))) {
             echo "setDayNextAdd Failed to fetch rates. Possibly due to newCurrencyConversionDate being the same as today's date.";
@@ -79,7 +93,8 @@ class LiveMarginFxSpeculator Extends FxSpeculator
         }
         $this->fetchRatesCurrency = $this->newCurrency;
         if(!($this->getFxAppreciationBaseCurrencyOriginal($this->dayNext))) {
-            echo 'getFxAppreciationBaseCurrencyOriginal Failed to fetch rates. Try reducing $minimumAppreciationBaseCurrencyOriginal.';
+            $newCurrencyConversionDate = $newCurrencyConversionDate->format('Y-m-d');
+            echo "getFxAppreciationBaseCurrencyOriginal: The minimum appreciation ($this->minimumAppreciationBaseCurrencyOriginal%) of $this->newCurrency between $newCurrencyConversionDate and today has not been found.";
             exit();
         }
         $this->fetchRatesCurrency = $this->newCurrency;
@@ -101,8 +116,9 @@ class LiveMarginFxSpeculator Extends FxSpeculator
         try {
             $this->dateToday = $day1->format('Y-m-d');
             $this->dateYesterday = $this->dateToday;
+            $this->fetchRates($this->fetchRatesCurrency);
 
-            if(!($this->fetchRates($this->fetchRatesCurrency))) {
+            if(empty($this->rates)) {
                 return false;
             }
 
@@ -235,10 +251,7 @@ class LiveMarginFxSpeculator Extends FxSpeculator
             $dayNext = $dayNext->add(new DateInterval('P1D'));
             $this->dateToday = $dayNext->format('Y-m-d');
             $this->dateYesterday = $this->dateToday;
-
-            if(!($this->fetchRates($this->fetchRatesCurrency))) {
-                return;
-            }
+            $this->fetchRates($this->fetchRatesCurrency);
         } catch (\Exception $ex) {
         }
 
@@ -300,11 +313,14 @@ class LiveMarginFxSpeculator Extends FxSpeculator
     private function convertCurrencyBaseCurrencyOriginal(): void
     {
         $key1 = $this->baseCurrencyOriginal;
-        $this->dateToday = $this->now->format('Y-m-d');
+
+        $this->dateToday = '2020-05-19';
+
+        //$this->dateToday = $this->now->format('Y-m-d');
         $this->dateYesterday = $this->dateToday;
         $this->rates = $this->exchangeRatesAPI->addRate('GBP')->setBaseCurrency($this->fetchRatesCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch()->getRates();
         if(empty($this->rates)) {
-            echo "Rate for $this->fetchRatesCurrency ($this->dateToday) could not be fetched. Try again after CET 16:00. ";
+            echo "Rate for $this->fetchRatesCurrency ($this->dateToday) could not be fetched. Try again after CET 16:00.";
             exit();
         }
         $val1 = $this->addCurrencyConversionCost($this->rates[$this->dateToday][$this->baseCurrencyOriginal]); // Using today's rate
@@ -319,6 +335,35 @@ class LiveMarginFxSpeculator Extends FxSpeculator
             }
         }
 
+        $appreciation01Date = key($this->appreciation01['day1']);
+        $appreciation01FxRate = round($this->fxrates['day1'][$this->fetchRatesCurrency][$appreciation01Date][$this->baseCurrencyOriginal], 4);
+        $appreciation02Date = key($this->appreciation02['dayNext'][$this->fetchRatesCurrency]);
+        $appreciation02Rate = round($this->rates[$this->dateToday][$this->baseCurrencyOriginal], 4);
+
+        $result = "On $appreciation01Date converted ".(string)$this->baseCurrencyOriginal.(string)$this->qtyOriginal .' to ' .(string)$this->newCurrency.(string)$this->newCurrencyQty ."<br/>";
+        $result .= "The $this->newCurrency rate was $appreciation01FxRate against $this->baseCurrencyOriginal.<br/>";
+        $result .= "On $appreciation02Date the minimum appreciation ($this->minimumAppreciationBaseCurrencyOriginal%) has been found.<br/>";
+        $result .= "It is recommended to convert back to $this->baseCurrencyOriginal at $appreciation02Rate.<br/>";
+
+        $profitLoss = round($qtyCurrency - $this->qtyOriginal, 2);
+
+        if($profitLoss == 0) {
+            $result .= "Resulting in no gain or loss.";
+        } elseif ($profitLoss < 0) {
+            $result .= "Resulting in a LOSS of $this->baseCurrencyOriginal" .-($profitLoss) .' .';
+        } elseif ($profitLoss > 0) {
+            $result .= "Resulting in a PROFIT of $this->baseCurrencyOriginal$profitLoss.";
+        }
+
         print_r($this->currenciesResult['currenciesResult']);
+        echo '<br/>';
+        echo '<br/>';
+        echo ('-----------------------');
+        echo '<br/>';
+        echo '<br/>';
+        var_export($result);
+        echo '<br/>';
+        echo '<br/>';
+        echo ('-----------------------');
     }
 }
