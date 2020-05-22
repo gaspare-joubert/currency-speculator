@@ -1,9 +1,17 @@
 # Currency Speculator - Release Notes
 
-## 2020-05-15 v0.2
+## 2020-05-22 v0.3
 #### [Story: Live Margin Fx Speculator]
 - **Add Feature**
-
+    - Class LiveMarginFxSpeculator
+        - Calculate Live Margin
+         - Use the first part of the process
+           - to find a currency which has depreciated by $minimumAppreciationFx
+           - against the $baseCurrencyOriginal
+           - convert a $qtyOriginal of the $baseCurrencyOriginal to this $newCurrency
+         - Use the second part of the process
+           - to find the date when the $newCurrency has appreciated by $minimumAppreciationBaseCurrencyOriginal against the $baseCurrencyOriginal
+           - convert the $newCurrency back to the $baseCurrencyOriginal
 
 ## 2020-05-15 v0.2
 #### [Story: Test Margin Fx Speculator]
