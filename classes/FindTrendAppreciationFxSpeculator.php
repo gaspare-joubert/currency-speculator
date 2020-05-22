@@ -34,8 +34,8 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
         $this->date = new DateTime($startDate);
 
         //$this->date = new DateTime(); // Use this for live instance
-        $this->minimumAppreciationFx = '0';
-        $this->dateInterval = 'P0D'; // 'P1D' 'P1W' 'P1M' 'P1Y'
+        $this->minimumAppreciationFx = '38.2'; // 23.6, 38.2, 50.0, 61.8, 76.4
+        $this->dateInterval = 'P1Y'; // 'P1D' 'P1W' 'P1M' 'P1Y'
         $this->endDate = clone $this->date;
         $this->endDate = $this->endDate->sub(new DateInterval($this->dateInterval));
         $this->day1 = $this->date;
@@ -100,7 +100,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
             $dayNext = new DateTime($paramDayNext->format('Y-m-d'));
 
             if ($this->dateInterval != 'P0D') {
-                if (empty($this->rates) && $paramDayNext >= $this->endDate) {
+                if (empty($this->rates) && $this->endDate >= $paramDayNext  ) {
                     return false;
                 }
             }
@@ -151,7 +151,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
         } catch (\Exception $ex) {
         }
 
-        while (empty($this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]) && $dayNext <= $this->endDate ) {
+        while (empty($this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]) && $this->endDate <= $dayNext  ) {
             if(!($this->setDayNextSub($paramDayNext))) {
                 $msg1 = true;
                 break; // Rates not fetched between $this->day1 and $this->endDate
