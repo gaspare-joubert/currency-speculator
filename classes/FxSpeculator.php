@@ -56,17 +56,17 @@ class FxSpeculator
         $lookup = $this->exchangeRatesAPI;
         $this->rates = ($lookup->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch()->getRates());
 
-        if($baseCurrency === $this->baseCurrencyOriginal)
-        {
-            $this->removeRate($baseCurrency);
-        }
+        if (!empty($this->rates)) {
+            if($baseCurrency === $this->baseCurrencyOriginal)
+            {
+                $this->removeRate($baseCurrency);
+            }
 
-        if (!empty($this->ratesToRemove))
-        {
-            $this->removeRates($this->ratesToRemove);
+            if (!empty($this->ratesToRemove))
+            {
+                $this->removeRates($this->ratesToRemove);
+            }
         }
-
-        //$this->rates = $lookup->addRates(['EUR', 'JPY', 'BGN', 'CZK', 'DKK'])->setBaseCurrency($baseCurrency)->addDateFrom($this->dateYesterday)->addDateTo($this->dateToday)->fetch(); // For Testing Only!!
     }
 
     /**
