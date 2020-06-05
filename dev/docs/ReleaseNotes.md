@@ -1,5 +1,9 @@
 # Currency Speculator - Release Notes
 
+## ?? v0.4
+#### [Story: ?? Fx Speculator]
+- **Add Feature**
+
 ## 2020-05-22 v0.3
 #### [Story: Live Margin Fx Speculator]
 - **Add Feature**
