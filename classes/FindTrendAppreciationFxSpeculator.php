@@ -14,7 +14,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
     private $fetchRatesCurrency;
     private $minimumAppreciationFx = '0'; // Minimum appreciation to trigger conversion from original base currency
     private $endDate;
-    private $dateInterval = 'P0D'; // 'P1D' 'P1W' 'P1M' 'P1Y'
+    private $dateInterval = 'P0D'; // The maximum date range to use
     private $getFxAppreciationSubMsg;
     private $appreciation01 = array();
 
@@ -30,7 +30,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
         /**
          * For testing only!!
          */
-        $startDate = '2020-05-21';
+        $startDate = '2020-05-07';
         $this->date = new DateTime($startDate);
 
         //$this->date = new DateTime(); // Use this for live instance
@@ -51,7 +51,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
         }
         $this->fetchRatesCurrency = $this->baseCurrencyOriginal;
         if (($test = $this->getFxAppreciationSub($this->dayNext)) == ('msg1' || 'msg2')) {
-            echo "$this->getFxAppreciationSubMsg";
+            echo (string)$this->getFxAppreciationSubMsg;
             exit();
         }
     }
@@ -172,7 +172,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
         }
 
         $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates fetched between $day1 and " .$this->endDate->format('Y-m-d') .".\n";
-        $this->getFxAppreciationSubMsg .= "Fx found with $this->minimumAppreciationFx% appreciation against $this->baseCurrencyOriginal.\n";
+        $this->getFxAppreciationSubMsg .= "Fx has been found where $this->baseCurrencyOriginal has appreciated by $this->minimumAppreciationFx%.\n";
         $this->getFxAppreciationSubMsg .= json_encode($this->appreciation01);
 
         var_dump($this->getFxAppreciationSubMsg);
