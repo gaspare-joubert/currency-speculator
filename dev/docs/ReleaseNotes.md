@@ -1,8 +1,12 @@
 # Currency Speculator - Release Notes
 
-## ?? v0.4
-#### [Story: ?? Fx Speculator]
+## 2020-06-05 v0.4
+#### [Story: Find Trend Fx Speculator]
 - **Add Feature**
+     - Class FindTrendAppreciationFxSpeculator
+         - Find Fx which has depreciated by a given percentage against the base currency
+            - Set a date range to search
+              Set a minimum depreciation percentage to search for
 
 ## 2020-05-22 v0.3
 #### [Story: Live Margin Fx Speculator]
