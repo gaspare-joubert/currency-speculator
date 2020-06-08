@@ -134,6 +134,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
         $dayNext = '';
         $appreciation = '';
         $msg1 = false;
+        $day1 = '';
         try {
             $dayNext = new DateTime($paramDayNext->format('Y-m-d'));
             $day1 = $this->day1->format('Y-m-d');
@@ -145,6 +146,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
 
                     if($appreciation >= $this->minimumAppreciationFx) {
                         $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')][$key] = $appreciation;
+                        $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]['fxRate'] = round($val, 2);
                     }
                 }
             }
@@ -159,6 +161,20 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
             return $this->getFxAppreciationSub($this->dayNext);
         }
 
+        $this->outputFxAppreciationSubMsg($msg1, $day1);
+    }
+
+    /**
+     * @param $msg1
+     * @param $day1
+     * @return string|null
+     *
+     * Output getFxAppreciationSubMsg
+     * Write getFxAppreciationSubMsg to text file
+     * Write appreciation01 to text file
+     */
+    private function outputFxAppreciationSubMsg($msg1, $day1): ?string
+    {
         if (empty($this->appreciation01['day1']) && $msg1) {
             $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates not fetched between $day1 and " .$this->endDate->format('Y-m-d') .".\n";
             $this->getFxAppreciationSubMsg .= "No fx found with $this->minimumAppreciationFx% appreciation against $this->baseCurrencyOriginal.";
