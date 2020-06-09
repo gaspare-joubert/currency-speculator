@@ -1,5 +1,11 @@
 # Currency Speculator - Release Notes
 
+## 2020-06-09 v0.4.1
+#### [Story: Find Trend Fx Speculator]
+- **Add Feature**
+     - Class FindTrendAppreciationFxSpeculator
+         - Write Fx trend to a text file
+
 ## 2020-06-05 v0.4
 #### [Story: Find Trend Fx Speculator]
 - **Add Feature**
