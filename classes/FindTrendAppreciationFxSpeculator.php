@@ -146,7 +146,7 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
 
                     if($appreciation >= $this->minimumAppreciationFx) {
                         $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')][$key] = $appreciation;
-                        $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]['fxRate'] = round($val, 2);
+                        $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]["fxRate_on_$day1"] = round($val, 2);
                     }
                 }
             }
@@ -176,20 +176,40 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
     private function outputFxAppreciationSubMsg($msg1, $day1): ?string
     {
         if (empty($this->appreciation01['day1']) && $msg1) {
-            $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates not fetched between $day1 and " .$this->endDate->format('Y-m-d') .".\n";
+            $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates not fetched between $day1 and " . $this->endDate->format(
+                    'Y-m-d'
+                ) . ".\n";
             $this->getFxAppreciationSubMsg .= "No fx found with $this->minimumAppreciationFx% appreciation against $this->baseCurrencyOriginal.";
+
             return 'msg1';
         }
 
         if (empty($this->appreciation01['day1']) && !$msg1) {
-            $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates fetched between $day1 and " .$this->endDate->format('Y-m-d') .".\n";
+            $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates fetched between $day1 and " . $this->endDate->format(
+                    'Y-m-d'
+                ) . ".\n";
             $this->getFxAppreciationSubMsg .= "No fx found with $this->minimumAppreciationFx% appreciation against $this->baseCurrencyOriginal.";
+
             return 'msg2';
         }
 
-        $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates fetched between $day1 and " .$this->endDate->format('Y-m-d') .".\n";
-        $this->getFxAppreciationSubMsg .= "Fx has been found where $this->baseCurrencyOriginal has appreciated by $this->minimumAppreciationFx%.\n";
+        $this->getFxAppreciationSubMsg = "getFxAppreciationSub: Rates fetched between $day1 and " . $this->endDate->format(
+                'Y-m-d'
+            ) . ".\n";
+        $this->getFxAppreciationSubMsg .= "Fx has been found where $this->baseCurrencyOriginal has appreciated by a minimum of $this->minimumAppreciationFx%.\n";
         $this->getFxAppreciationSubMsg .= json_encode($this->appreciation01);
+
+        $fileDirectory = '../CurrencySpeculator/';
+        $fileName = (string)$this->baseCurrencyOriginal . "_$day1" . '_to_' . $this->endDate->format(
+                'Y-m-d'
+            ) . "_$this->minimumAppreciationFx%.txt";
+        $fullPath = $fileDirectory . $fileName;
+
+        try {
+            $handle = file_put_contents($fullPath, $this->getFxAppreciationSubMsg);
+            chmod($fullPath, 0775);
+        } catch (\Exception $ex) {
+        }
 
         var_dump($this->getFxAppreciationSubMsg);
     }
