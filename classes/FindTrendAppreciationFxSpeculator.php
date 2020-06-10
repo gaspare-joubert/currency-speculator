@@ -30,12 +30,12 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
         /**
          * For testing only!!
          */
-        $startDate = '2020-05-07';
-        $this->date = new DateTime($startDate);
+        /*$startDate = '2020-05-07';
+        $this->date = new DateTime($startDate);*/
 
-        //$this->date = new DateTime(); // Use this for live instance
-        $this->minimumAppreciationFx = '38.2'; // 23.6, 38.2, 50.0, 61.8, 76.4
-        $this->dateInterval = 'P1Y'; // 'P1D' 'P1W' 'P1M' 'P1Y'
+        $this->date = new DateTime(); // Use this for live instance
+        $this->minimumAppreciationFx = '23.6'; // 23.6, 38.2, 50.0, 61.8, 76.4
+        $this->dateInterval = 'P3Y'; // 'P1D' 'P1W' 'P1M' 'P1Y'
         $this->endDate = clone $this->date;
         $this->endDate = $this->endDate->sub(new DateInterval($this->dateInterval));
         $this->day1 = $this->date;
@@ -146,7 +146,11 @@ class FindTrendAppreciationFxSpeculator Extends FxSpeculator
 
                     if($appreciation >= $this->minimumAppreciationFx) {
                         $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')][$key] = $appreciation;
+                        $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]['fxRate_on_' .$dayNext->format('Y-m-d')] = round($val1, 2);
                         $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]["fxRate_on_$day1"] = round($val, 2);
+                        $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]['23.6%_retrace'] = round($val-(($val-$val1)*0.236), 2);
+                        $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]['38.2%_retrace'] = round($val-(($val-$val1)*0.382), 2);
+                        $this->appreciation01['day1'][$day1][$this->fetchRatesCurrency][$dayNext->format('Y-m-d')]['50.0%_retrace'] = round($val-(($val-$val1)*0.500), 2);
                     }
                 }
             }
