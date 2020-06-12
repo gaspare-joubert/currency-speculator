@@ -11,8 +11,11 @@
 
 namespace BenMajor\ExchangeRatesAPI;
 
+use function Composer\Autoload\includeFile;
+
 require_once('vendor/guzzlehttp/guzzle/src/Client.php');
 require_once('vendor/benmajor/exchange-rates-api/src/Response.php');
+require_once ('vendor/benmajor/exchange-rates-api/src/Exception.php');
 
 class ExchangeRatesAPI
 {
@@ -27,7 +30,7 @@ class ExchangeRatesAPI
     private $baseCurrency;
     
     # Exchange rates to fetch
-    private $rates = [ ];
+    public $rates = [ ];
     
     # Contains our Guzzle client:
     private $client;
@@ -374,7 +377,7 @@ class ExchangeRatesAPI
     }
     
     # Runs tests to verify a currency code:
-    private function verifyCurrencyCode( string $code )
+    public function verifyCurrencyCode( string $code )
     {
         $currencyCode = $this->sanitizeCurrencyCode($code);
         
@@ -392,7 +395,7 @@ class ExchangeRatesAPI
     }
     
     # Sanitize a currency code:
-    private function sanitizeCurrencyCode( string $code )
+    public function sanitizeCurrencyCode( string $code )
     {
         return trim(
             strtoupper( $code )
