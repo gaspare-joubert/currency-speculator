@@ -12,6 +12,7 @@ require_once ('classes/DelayedMarginFxSpeculator.php');
 require_once ('classes/TestMarginFxSpeculator.php');
 require_once ('classes/LiveMarginFxSpeculator.php');
 require_once ('classes/FindTrendAppreciationFxSpeculator.php');
+require_once ('classes/FindTrendProfitPointFxSpeculator.php');
 
 use \BenMajor\ExchangeRatesAPI\ExchangeRatesAPI;
 
@@ -21,4 +22,5 @@ $fxSpeculator = new FxSpeculator($exchangeRatesAPI);
 //$delayedMarginFxSpeculator = new DelayedMarginFxSpeculator();
 //$testMarginFxSpeculator = new TestMarginFxSpeculator();
 //$liveMarginFxSpeculator = new LiveMarginFxSpeculator();
-$findTrendAppreciationFxSpeculator = new FindTrendAppreciationFxSpeculator();
+//$findTrendAppreciationFxSpeculator = new FindTrendAppreciationFxSpeculator();
+$findTrendProfitPointFxSpeculator = new FindTrendProfitPointFxSpeculator();

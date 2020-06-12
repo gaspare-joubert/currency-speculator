@@ -1,5 +1,11 @@
 # Currency Speculator - Release Notes
 
+## 2020-?? v0.5
+#### [Story: Find Trend Profit Point Fx Speculator]
+- **Add Feature**
+    - Class FindTrendProfitPointFxSpeculator
+    - Interface AppreciationInterface
+
 ## 2020-06-09 v0.4.1
 #### [Story: Find Trend Fx Speculator]
 - **Add Feature**
