@@ -42,20 +42,29 @@ class FindTrendProfitPointFxSpeculator implements AppreciationInterface
      */
     private function outputNewCurrencyRateSell(): void
     {
-        $newCurrencyRateSellMsg = "You converted $this->baseCurrencyOriginal$this->qtyOriginal to $this->newCurrency$this->newCurrencyQty at a rate of " .$this->newCurrencyRateBuy() .". \n";
-        $newCurrencyRateSellMsg .= "The goal is to achieve a minimum appreciation of 12.1%, including cost. \n";
-        $newCurrencyRateSellMsg .= "It is recommended to covert BRL back to GBP at a rate of $this->newCurrencyRateSell. \n";
-        $newCurrencyRateSellMsg .= "This should result in a total of $this->baseCurrencyOriginal" . round($this->newCurrencyQty/$this->newCurrencyRateSell, 2);
+        $newCurrencyRateSellMsg = "You converted $this->baseCurrencyOriginal$this->qtyOriginal to $this->newCurrency$this->newCurrencyQty at a rate of " . $this->newCurrencyRateBuy(
+            ) . ". \n";
+        $newCurrencyRateSellMsg .= 'The goal is to achieve a minimum appreciation of ' . $this->minimumAppreciationFx(
+            ) . "%, including cost. \n";
+        $newCurrencyRateSellMsg .= "It is recommended to convert $this->newCurrency back to $this->baseCurrencyOriginal at a rate of $this->newCurrencyRateSell. \n";
+        $newCurrencyRateSellMsg .= "This should result in a total of $this->baseCurrencyOriginal" . round(
+                $this->newCurrencyQty / $this->newCurrencyRateSell,
+                2
+            );
 
         $fileDirectory = '../CurrencySpeculator/ProfitPoint/';
         $fileName = (string)$this->newCurrency . (string)$this->newCurrencyQty . '_bought_at_' . $this->newCurrencyRateBuy(
-            ) . '_' .round($this->appreciationCostAsPercentageTotal, 2) .'%.txt';
+            ) . '_' . round($this->appreciationCostAsPercentageTotal, 2) . '%.txt';
         $fullPath = $fileDirectory . $fileName;
 
         try {
             $handle = file_put_contents($fullPath, $newCurrencyRateSellMsg);
             chmod($fullPath, 0775);
         } catch (\Exception $ex) {
+        } finally {
+            if (!isset($ex)) {
+                echo "NewCurrencyRateSell has been written to $fullPath";
+            }
         }
     }
 
