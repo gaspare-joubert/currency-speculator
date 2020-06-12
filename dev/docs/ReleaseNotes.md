@@ -1,10 +1,14 @@
 # Currency Speculator - Release Notes
 
-## 2020-?? v0.5
+## 2020-06-12 v0.5
 #### [Story: Find Trend Profit Point Fx Speculator]
 - **Add Feature**
     - Class FindTrendProfitPointFxSpeculator
+        - Use the rate used to purchase a currency and calculate the Profit Point for this transaction
+          Use the minimum profit percentage and cost of converting currency
+          Output information to a text file
     - Interface AppreciationInterface
+        - Used to declare methods needed to calculate the Fx profit point
 
 ## 2020-06-09 v0.4.1
 #### [Story: Find Trend Fx Speculator]
