@@ -1,5 +1,13 @@
 # Currency Speculator - Release Notes
 
+## 2020-07-27 v0.5.1
+#### [Story: Find Trend Profit Point Fx Speculator]
+- **Minor Update**
+    - Class FindTrendProfitPointFxSpeculator
+        - Add return type for function main()
+        - In function outputNewCurrencyRateSell() use $appreciationCostAsPercentageTotal in $newCurrencyRateSellMsg 
+          so that same percentage used in file name and file content
+
 ## 2020-06-12 v0.5
 #### [Story: Find Trend Profit Point Fx Speculator]
 - **Add Feature**

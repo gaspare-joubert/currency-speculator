@@ -25,7 +25,17 @@ class FindTrendProfitPointFxSpeculator implements AppreciationInterface
         $this->main();
     }
 
-    private function main()
+    /**
+     * @return void
+     *
+     * Set $baseCurrencyOriginal
+     * Set $qtyOriginal
+     * Set $newCurrencyQty
+     * Set $newCurrency
+     * Calculate the New Currency Rate Sell
+     * Output the New Currency Rate Sell
+     */
+    private function main(): void
     {
         $this->baseCurrencyOriginal = 'GBP';
         $this->qtyOriginal = '1000';
@@ -44,8 +54,7 @@ class FindTrendProfitPointFxSpeculator implements AppreciationInterface
     {
         $newCurrencyRateSellMsg = "You converted $this->baseCurrencyOriginal$this->qtyOriginal to $this->newCurrency$this->newCurrencyQty at a rate of " . $this->newCurrencyRateBuy(
             ) . ". \n";
-        $newCurrencyRateSellMsg .= 'The goal is to achieve a minimum appreciation of ' . $this->minimumAppreciationFx(
-            ) . "%, including cost. \n";
+        $newCurrencyRateSellMsg .= 'The goal is to achieve a minimum appreciation of ' . round($this->appreciationCostAsPercentageTotal, 2) . "%, including cost. \n";
         $newCurrencyRateSellMsg .= "It is recommended to convert $this->newCurrency back to $this->baseCurrencyOriginal at a rate of $this->newCurrencyRateSell. \n";
         $newCurrencyRateSellMsg .= "This should result in a total of $this->baseCurrencyOriginal" . round(
                 $this->newCurrencyQty / $this->newCurrencyRateSell,
