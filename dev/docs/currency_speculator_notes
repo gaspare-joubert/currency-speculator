@@ -1,0 +1,51 @@
+----------------------------------------------------------
+Calculate the % appreciation/depreciation when selling a currency
+X = 0.11
+Y = 0.12
+
+X * (100/100 + z/100) = Y
+                    Z = ((Y/X)-1)*100
+----------------------------------------------------------
+Calculate the % appreciation/depreciation when buying a currency
+Y = 6.28
+Z = 5.7275 
+X = 8.797770701
+
+6.28 - (6.28 * (X/100)) = 5.7275
+
+Y - (Y * (X/100)) = Z
+                X = -(((Z-Y)/Y)*100)
+----------------------------------------------------------
+
+In order to calculate the % commission charged when supplier is selling a currency:
+* Determine how much of the new currency you will receive from the bank/broker.
+* Determine how much of the new currency you would receive hypothetically if you were to use the current exchange rate.
+
+For example on 10 September 2020 at 17:53
+Currency Online Group would sell 1075.90Euro at a cost of £1000 @ 1.0759 
+The current exchange rate would sell 1082.40Euro at a cost of £1000 @ 1.08
+Using the following formula:
+Z = ((Y/X)-1)*100
+
+X = 1075.90
+Y = 1082.40
+Z = ((1082.40/1075.90)-1)*100
+Z = 0.60%
+
+----------------------------------------------------------
+
+In order to calculate the % commission charged when supplier is buying back a currency:
+* Determine how much of the new currency you will receive from the bank/broker.
+* Determine how much of the new currency you would receive hypothetically if you were to use the current exchange rate.
+
+For example on 10 September 2020 at 17:53
+Currency Online Group would buy back 1000Euro, resulting in £889.05, @ 0.89 (1/1.1248)
+The current exchange rate would buy back 1000Euro, resulting in £925.43 @ 0.93
+Using the following formula:
+X = -(((Z-Y)/Y)*100)
+
+Y = 925.43
+Z = 889.05
+X = -(((889.05-925.43)/925.43)*100)
+X = 3.93%
+----------------------------------------------------------
